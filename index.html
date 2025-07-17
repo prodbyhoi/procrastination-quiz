@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Procrastination Quiz - Mario Style</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  body {
+    font-family: 'Press Start 2P', cursive, monospace;
+    background: linear-gradient(to bottom, #5c94fc 0%, #0a52a5 100%);
+    color: #fff;
+    margin: 0; padding: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #app {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    position: relative;
+  }
+  .screen {
+    max-width: 480px;
+    width: 90%;
+    background: #0c2340;
+    border: 5px solid #ff0000;
+    border-radius: 20px;
+    box-shadow: 0 0 20px #ff0000;
+    padding: 24px;
+    box-sizing: border-box;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    color: #ffcc00;
+  }
+  .hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -40%) scale(0.9);
+  }
+  h1 {
+    margin: 0 0 20px;
+    font-size: 1.3rem;
+    text-shadow: 2px 2px #c70000;
+  }
+  select {
+    background: #ff0000;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 8px #ff6666;
+    margin-bottom: 20px;
+  }
+  .btn {
+    background: #ff0000;
+    border: none;
+    padding: 14px 30px;
+    margin: 10px 5px;
+    border-radius: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    text-shadow: 1px 1px #a00000;
+    box-shadow: 0 0 15px #ff0000;
+    transition: background 0.3s ease;
+  }
+  .btn:hover {
+    background: #cc0000;
+    box-shadow: 0 0 20px #ff4444;
+  }
+  .question {
+    font-size: 14px;
+    margin-bottom: 20px;
+    min-height: 50px;
+  }
+  .score {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffcc00;
+    margin-top: 20px;
+  }
+  .result-text {
+    font-size: 14px;
+    margin-top: 12px;
+    color: #ffeeaa;
+    min-height: 50px;
+  }
+  .boss-section {
+    margin-top: 25px;
+    text-align: left;
+    color: #ffd966;
+  }
+  label {
+    font-size: 12px;
+    margin-bottom: 5px;
+    display: block;
+  }
+  textarea {
+    width: 100%;
+    height: 70px;
+    border-radius: 8px;
+    border: 2px solid #ffcc00;
+    background: #222222;
+    color: #fff;
+    font-family: monospace;
+    font-size: 12px;
+    padding: 10px;
+    resize: none;
+  }
+  .quests {
+    margin-top: 20px;
+    text-align: left;
+    color: #ffeeaa;
+  }
+  .quests label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .quests input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.3);
+    accent-color: #ff0000;
+  }
+  #badge {
+    margin-top: 25px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffcc00;
+    text-shadow: 2px 2px #a00000;
+  }
+  #badge-icon {
+    display: inline-block;
+    width: 48px;
+    height: 48px;
+    background-size: contain;
+    vertical-align: middle;
+    margin-right: 10px;
+  }
+  /* Animation for question transitions */
+  .fade-in {
+    animation: fadeInScale 0.6s ease forwards;
+  }
+  .fade-out {
+    animation: fadeOutScale 0.6s ease forwards;
+  }
+  @keyframes fadeInScale {
+    0% {opacity: 0; transform: translateY(20px) scale(0.95);}
+    100% {opacity: 1; transform: translateY(0) scale(1);}
+  }
+  @keyframes fadeOutScale {
+    0% {opacity: 1; transform: translateY(0) scale(1);}
+    100% {opacity: 0; transform: translateY(-20px) scale(0.95);}
+  }
+  /* Mario vs Bowser animation container */
+  #final-animation {
+    width: 100%;
+    max-width: 480px;
+    height: 240px;
+    background: #111a2b;
+    border: 5px solid #ff0000;
+    border-radius: 20px;
+    box-shadow: 0 0 20px #ff0000;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Sprites - simplified pixel art squares with animations */
+  .sprite {
+    position: absolute;
+    bottom: 0;
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
+  }
+  #mario {
+    background: url('https://i.imgur.com/zxjVx5K.png') no-repeat center/contain;
+    left: 20px;
+    animation: marioJump 1s infinite ease-in-out;
+    z-index: 10;
+  }
+  #bowser {
+    background: url('https://i.imgur.com/bmlqlBd.png') no-repeat center/contain;
+    right: 20px;
+    animation: bowserAttack 1.5s infinite ease-in-out;
+    z-index: 9;
+  }
+  @keyframes marioJump {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+  @keyframes bowserAttack {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-10px); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Language selection screen -->
+  <div id="lang-screen" class="screen">
+    <h1>Choose Your Language</h1>
+    <select id="language">
+      <option value="fr" selected>Français</option>
+      <option value="en">English</option>
+      <option value="es">Español</option>
+      <option value="pt">Português</option>
+      <option value="de">Deutsch</option>
+    </select>
+    <button class="btn" id="start-btn">Start</button>
+  </div>
+  <!-- Quiz screen -->
+  <div id="quiz-screen" class="screen hidden">
+    <div class="question" id="question"></div>
+    <button class="btn" id="btn-yes">Oui</button>
+    <button class="btn" id="btn-no">Non</button>
+  </div>
+  <!-- Score & boss input & quests screen -->
+  <div id="score-screen" class="screen hidden">
+    <div class="score" id="score"></div>
+    <div class="result-text" id="result-text"></div>
+
+    <div id="advice" class="result-text" style="margin-top:12px;"></div>
+
+    <div class="boss-section">
+      <label for="boss-input" id="boss-label">🛡️ Quel est ton blocage principal quand tu procrastines ?</label>
+      <textarea id="boss-input" placeholder="Ex : peur de l’échec, manque de motivation..."></textarea>
+      <button class="btn" id="btn-submit-boss">Valider</button>
+    </div>
+
+    <div class="quests" id="quests" style="display:none;">
+      <h2>Mini Quêtes - Mets-toi en mode héros !</h2>
+      <label><input type="checkbox" id="quest1"> Planifie ta journée demain dès ce soir</label>
+      <label><input type="checkbox" id="quest2"> Coupe ton téléphone 30 minutes pour te concentrer</label>
+      <label><input type="checkbox" id="quest3"> Commence par la tâche la plus facile</label>
+      <button class="btn" id="btn-validate-quests">Valider les quêtes</button>
+    </div>
+
+    <div id="badge"></div>
+
+    <div id="final-message" class="result-text"></div>
+    <div id="final-animation" class="hidden">
+      <div id="mario" class="sprite"></div>
+      <div id="bowser" class="sprite"></div>
+    </div>
+  </div>
+</div>
+<footer>© 2025 Restart Guide - Mario Style</footer>
+<script>
+  const translations = {
+    fr: {
+      title: "Procrastination Quiz",
+      questions: [
+        "As-tu déjà repoussé une mission importante jusqu’à la dernière minute ?",
+        "Te surprends-tu souvent à préférer des distractions faciles plutôt que de commencer une tâche importante ?",
+        "Ressens-tu du stress ou de la culpabilité quand tu penses à ce que tu as repoussé ?",
+        "As-tu du mal à fixer des objectifs clairs et réalistes pour avancer ?",
+        "Dis-tu souvent « Je ferai ça demain » ou « Je travaille mieux sous pression » ?",
+        "Te critiques-tu régulièrement pour ton manque de discipline ?",
+        "Es-tu facilement submergé(e) quand tu as trop de choses à faire ?"
+      ],
+      yes: "Oui",
+      no: "Non",
+      results: [
+        "Bravo, héros ! Ta procrastination est faible, tu es déjà sur la bonne voie. +100 XP",
+        "Attention, Mini-Doute détecté ! La procrastination te freine parfois. +50 XP",
+        "Boss Procrastination actif ! Il est temps d’attaquer sérieusement cette quête. +20 XP"
+      ],
+      advice: [
+        "Tu gères déjà super bien ! Continue comme ça, garde ta motivation.",
+        "Attention à ne pas te laisser distraire. Essaie de planifier des plages fixes pour tes tâches.",
+        "Il est temps de passer à l’action ! Commence par de petites tâches simples et utilise des timers Pomodoro."
+      ],
+      bossLabel: "Quel est ton blocage principal quand tu procrastines ?",
+      bossPlaceholder: "Ex : peur de l’échec, manque de motivation...",
+      bossConfirm: "Valider",
+      finalMessage: "🛡️ Ton blocage principal est :",
+      alertBossEmpty: "Merci de renseigner ton blocage principal pour continuer.",
+      questsTitle: "Mini Quêtes - Mets-toi en mode héros !",
+      quests: [
+        "Planifie ta journée demain dès ce soir",
+        "Coupe ton téléphone 30 minutes pour te concentrer",
+        "Commence par la tâche la plus facile"
+      ],
+      badgeText: [
+        "🏅 Badge Héros du temps : Tu gères le temps comme un champion !",
+        "🏅 Badge Combattant : Tu te bats pour progresser, bravo !",
+        "🏅 Badge Boss Slayer : Tu es prêt à terrasser la procrastination !"
+      ]
+    },
+    en: {
+      title: "Procrastination Quiz",
+      questions: [
+        "Have you ever postponed an important task until the last minute?",
+        "Do you often find yourself preferring easy distractions over starting an important task?",
+        "Do you feel stress or guilt when you think about what you have postponed?",
+        "Do you have trouble setting clear and realistic goals to move forward?",
+        "Do you often say, “I’ll do it tomorrow” or “I work better under pressure”?",
+        "Do you regularly criticize yourself for lack of discipline?",
+        "Do you get easily overwhelmed when you have too many things to do?"
+      ],
+      yes: "Yes",
+      no: "No",
+      results: [
+        "Well done, hero! Your procrastination is low, you’re already on the right path. +100 XP",
+        "Watch out, Mini-Doubt detected! Procrastination sometimes slows you down. +50 XP",
+        "Procrastination Boss active! Time to seriously tackle this quest. +20 XP"
+      ],
+      advice: [
+        "You’re already managing very well! Keep it up and stay motivated.",
+        "Be careful not to get distracted. Try scheduling fixed time slots for your tasks.",
+        "It’s time to take action! Start with small simple tasks and use Pomodoro timers."
+      ],
+      bossLabel: "What is your main blockage when you procrastinate?",
+      bossPlaceholder: "Eg: fear of failure, lack of motivation...",
+      bossConfirm: "Confirm",
+      finalMessage: "🛡️ Your main blockage is:",
+      alertBossEmpty: "Please fill in your main blockage to continue.",
+      questsTitle: "Mini Quests - Get in hero mode!",
+      quests: [
+        "Plan your day tomorrow tonight",
+        "Turn off your phone for 30 minutes to focus",
+        "Start with the easiest task"
+      ],
+      badgeText: [
+        "🏅 Time Hero Badge: You manage your time like a champion!",
+        "🏅 Fighter Badge: You fight to progress, well done!",
+        "🏅 Boss Slayer Badge: You’re ready to defeat procrastination!"
+      ]
+    },
+    es: {
+      title: "Cuestionario de Procrastinación",
+      questions: [
+        "¿Alguna vez has pospuesto una tarea importante hasta el último momento?",
+        "¿A menudo prefieres distracciones fáciles en lugar de comenzar una tarea importante?",
+        "¿Sientes estrés o culpa cuando piensas en lo que has pospuesto?",
+        "¿Tienes dificultades para establecer objetivos claros y realistas para avanzar?",
+        "¿A menudo dices “Lo haré mañana” o “Trabajo mejor bajo presión”?",
+        "¿Te criticas regularmente por falta de disciplina?",
+        "¿Te sientes fácilmente abrumado cuando tienes demasiadas cosas que hacer?"
+      ],
+      yes: "Sí",
+      no: "No",
+      results: [
+        "¡Bien hecho, héroe! Tu procrastinación es baja, ya estás en el buen camino. +100 XP",
+        "¡Cuidado, Mini-Duda detectado! La procrastinación a veces te frena. +50 XP",
+        "¡Jefe Procrastinación activo! Es hora de enfrentar seriamente esta misión. +20 XP"
+      ],
+      advice: [
+        "¡Ya estás manejando muy bien! Sigue así y mantente motivado.",
+        "Ten cuidado de no distraerte. Intenta programar franjas horarias fijas para tus tareas.",
+        "¡Es hora de actuar! Comienza con tareas pequeñas y simples y usa temporizadores Pomodoro."
+      ],
+      bossLabel: "¿Cuál es tu principal bloqueo cuando procrastinas?",
+      bossPlaceholder: "Ej: miedo al fracaso, falta de motivación...",
+      bossConfirm: "Confirmar",
+      finalMessage: "🛡️ Tu bloqueo principal es:",
+      alertBossEmpty: "Por favor, rellena tu bloqueo principal para continuar.",
+      questsTitle: "Mini Misiones - ¡Ponte en modo héroe!",
+      quests: [
+        "Planifica tu día de mañana esta noche",
+        "Apaga tu teléfono durante 30 minutos para concentrarte",
+        "Empieza por la tarea más fácil"
+      ],
+      badgeText: [
+        "🏅 Insignia Héroe del Tiempo: ¡Gestionas tu tiempo como un campeón!",
+        "🏅 Insignia Luchador: ¡Luchas para progresar, bien hecho!",
+        "🏅 Insignia Asesino de Jefes: ¡Estás listo para vencer la procrastinación!"
+      ]
+    },
+    pt: {
+      title: "Quiz de Procrastinação",
+      questions: [
+        "Você já adiou uma tarefa importante até o último minuto?",
+        "Você frequentemente prefere distrações fáceis em vez de começar uma tarefa importante?",
+        "Você sente estresse ou culpa quando pensa no que adiou?",
+        "Você tem dificuldade em definir metas claras e realistas para avançar?",
+        "Você costuma dizer 'Faço isso amanhã' ou 'Trabalho melhor sob pressão'?",
+        "Você se critica regularmente por falta de disciplina?",
+        "Você se sente facilmente sobrecarregado quando tem muitas coisas para fazer?"
+      ],
+      yes: "Sim",
+      no: "Não",
+      results: [
+        "Parabéns, herói! Sua procrastinação é baixa, você já está no caminho certo. +100 XP",
+        "Cuidado, Mini-Dúvida detectada! A procrastinação às vezes te atrasa. +50 XP",
+        "Chefe Procrastinação ativo! É hora de enfrentar seriamente essa missão. +20 XP"
+      ],
+      advice: [
+        "Você já está se saindo muito bem! Continue assim e mantenha a motivação.",
+        "Cuidado para não se distrair. Tente agendar horários fixos para suas tarefas.",
+        "É hora de agir! Comece com tarefas pequenas e simples e use temporizadores Pomodoro."
+      ],
+      bossLabel: "Qual é seu principal bloqueio quando procrastina?",
+      bossPlaceholder: "Ex: medo do fracasso, falta de motivação...",
+      bossConfirm: "Confirmar",
+      finalMessage: "🛡️ Seu bloqueio principal é:",
+      alertBossEmpty: "Por favor, preencha seu bloqueio principal para continuar.",
+      questsTitle: "Mini Missões - Entre no modo herói!",
+      quests: [
+        "Planeje seu dia amanhã hoje à noite",
+        "Desligue seu telefone por 30 minutos para se concentrar",
+        "Comece pela tarefa mais fácil"
+      ],
+      badgeText: [
+        "🏅 Distintivo Herói do Tempo: Você gerencia seu tempo como um campeão!",
+        "🏅 Distintivo Combatente: Você luta para progredir, parabéns!",
+        "🏅 Distintivo Matador de Chefes: Você está pronto para derrotar a procrastinação!"
+      ]
+    },
+    de: {
+      title: "Prokrastination Quiz",
+      questions: [
+        "Hast du schon einmal eine wichtige Aufgabe bis zur letzten Minute verschoben?",
+        "Ziehst du oft einfache Ablenkungen vor, statt eine wichtige Aufgabe zu beginnen?",
+        "Fühlst du Stress oder Schuld, wenn du an das Nachgeschobene denkst?",
+        "Fällt es dir schwer, klare und realistische Ziele zu setzen, um voranzukommen?",
+        "Sagst du oft „Ich mache es morgen“ oder „Ich arbeite besser unter Druck“?",
+        "Kritisiert du dich regelmäßig wegen mangelnder Disziplin?",
+        "Fühlst du dich schnell überwältigt, wenn du zu viele Dinge zu erledigen hast?"
+      ],
+      yes: "Ja",
+      no: "Nein",
+      results: [
+        "Gut gemacht, Held! Deine Prokrastination ist gering, du bist schon auf dem richtigen Weg. +100 XP",
+        "Achtung, Mini-Zweifel erkannt! Prokrastination bremst dich manchmal. +50 XP",
+        "Prokrastination-Boss aktiv! Zeit, diese Quest ernsthaft anzugehen. +20 XP"
+      ],
+      advice: [
+        "Du meisterst es schon sehr gut! Mach weiter so und bleib motiviert.",
+        "Achte darauf, dich nicht ablenken zu lassen. Versuche, feste Zeitfenster für deine Aufgaben zu planen.",
+        "Es ist Zeit zu handeln! Beginne mit kleinen einfachen Aufgaben und nutze Pomodoro-Timer."
+      ],
+      bossLabel: "Was ist deine Hauptblockade, wenn du prokrastinierst?",
+      bossPlaceholder: "Z.B.: Angst vor dem Scheitern, Motivationsmangel...",
+      bossConfirm: "Bestätigen",
+      finalMessage: "🛡️ Deine Hauptblockade ist:",
+      alertBossEmpty: "Bitte fülle deine Hauptblockade aus, um fortzufahren.",
+      questsTitle: "Mini-Quests - Geh in den Heldenmodus!",
+      quests: [
+        "Plane deinen Tag morgen schon heute Abend",
+        "Schalte dein Handy für 30 Minuten aus, um dich zu konzentrieren",
+        "Beginne mit der einfachsten Aufgabe"
+      ],
+      badgeText: [
+        "🏅 Zeit-Held Abzeichen: Du meisterst deine Zeit wie ein Champion!",
+        "🏅 Kämpfer Abzeichen: Du kämpfst um Fortschritt, gut gemacht!",
+        "🏅 Boss-Schlächter Abzeichen: Du bist bereit, die Prokrastination zu besiegen!"
+      ]
+    }
+  };
+
+  // DOM elements
+  const langSelect = document.getElementById('language');
+  const startBtn = document.getElementById('start-btn');
+
+  const langScreen = document.getElementById('lang-screen');
+  const quizScreen = document.getElementById('quiz-screen');
+  const scoreScreen = document.getElementById('score-screen');
+
+  const questionEl = document.getElementById('question');
+  const btnYes = document.getElementById('btn-yes');
+  const btnNo = document.getElementById('btn-no');
+
+  const scoreEl = document.getElementById('score');
+  const resultText = document.getElementById('result-text');
+  const adviceEl = document.getElementById('advice');
+
+  const bossLabel = document.getElementById('boss-label');
+  const bossInput = document.getElementById('boss-input');
+  const btnSubmitBoss = document.getElementById('btn-submit-boss');
+
+  const questsSection = document.getElementById('quests');
+  const btnValidateQuests = document.getElementById('btn-validate-quests');
+  const questCheckboxes = [
+    document.getElementById('quest1'),
+    document.getElementById('quest2'),
+    document.getElementById('quest3'),
+  ];
+
+  const badgeEl = document.getElementById('badge');
+
+  const finalMessage = document.getElementById('final-message');
+  const finalAnimation = document.getElementById('final-animation');
+
+  let currentLang = 'fr';
+  let currentQuestion = 0;
+  let score = 0;
+
+  function showScreen(screenToShow) {
+    [langScreen, quizScreen, scoreScreen].forEach(screen => {
+      if (screen === screenToShow) {
+        screen.classList.remove('hidden');
+        screen.style.opacity = '1';
+        screen.style.pointerEvents = 'auto';
+        screen.style.transform = 'translate(-50%, -50%) scale(1)';
+      } else {
+        screen.classList.add('hidden');
+        screen.style.opacity = '0';
+        screen.style.pointerEvents = 'none';
+        screen.style.transform = 'translate(-50%, -40%) scale(0.9)';
+      }
+    });
+  }
+
+  function loadLanguage(lang) {
+    currentLang = lang;
+    document.title = translations[lang].title;
+    bossLabel.textContent = translations[lang].bossLabel;
+    bossInput.placeholder = translations[lang].bossPlaceholder;
+    btnSubmitBoss.textContent = translations[lang].bossConfirm;
+    btnYes.textContent = translations[lang].yes;
+    btnNo.textContent = translations[lang].no;
+    scoreEl.textContent = '';
+    resultText.textContent = '';
+    adviceEl.textContent = '';
+    bossInput.value = '';
+    finalMessage.textContent = '';
+    finalAnimation.classList.add('hidden');
+    questsSection.style.display = 'none';
+    badgeEl.textContent = '';
+    questCheckboxes.forEach(cb => cb.checked = false);
+    btnValidateQuests.style.display = 'none';
+
+    currentQuestion = 0;
+    score = 0;
+    showQuestion();
+  }
+
+  function showQuestion() {
+    if (currentQuestion < translations[currentLang].questions.length) {
+      questionEl.textContent = translations[currentLang].questions[currentQuestion];
+      quizScreen.classList.add('fade-in');
+      quizScreen.classList.remove('fade-out');
+    } else {
+      showScore();
+    }
+  }
+
+  function nextQuestion() {
+    // animation out current question
+    quizScreen.classList.remove('fade-in');
+    quizScreen.classList.add('fade-out');
+
+    setTimeout(() => {
+      currentQuestion++;
+      if (currentQuestion < translations[currentLang].questions.length) {
+        showQuestion();
+      } else {
+        showScore();
+      }
+    }, 600);
+  }
+
+  btnYes.addEventListener('click', () => {
+    score++;
+    nextQuestion();
+  });
+
+  btnNo.addEventListener('click', () => {
+    nextQuestion();
+  });
+
+  function showScore() {
+    showScreen(scoreScreen);
+    scoreEl.textContent = currentLang === 'fr' ? `Tu as répondu "Oui" à ${score} question(s).` :
+      currentLang === 'en' ? `You answered "Yes" to ${score} question(s).` :
+      currentLang === 'es' ? `Has respondido "Sí" a ${score} pregunta(s).` :
+      currentLang === 'pt' ? `Você respondeu "Sim" a ${score} pergunta(s).` :
+      currentLang === 'de' ? `Du hast "${translations[currentLang].yes}" auf ${score} Frage(n) geantwortet.` : '';
+
+    if (score <= 2) {
+      resultText.textContent = translations[currentLang].results[0];
+      adviceEl.textContent = translations[currentLang].advice[0];
+      badgeEl.textContent = translations[currentLang].badgeText[0];
+    } else if (score <= 5) {
+      resultText.textContent = translations[currentLang].results[1];
+      adviceEl.textContent = translations[currentLang].advice[1];
+      badgeEl.textContent = translations[currentLang].badgeText[1];
+    } else {
+      resultText.textContent = translations[currentLang].results[2];
+      adviceEl.textContent = translations[currentLang].advice[2];
+      badgeEl.textContent = translations[currentLang].badgeText[2];
+    }
+
+    questsSection.style.display = 'block';
+    btnValidateQuests.style.display = 'inline-block';
+  }
+
+  btnSubmitBoss.addEventListener('click', () => {
+    const bossText = bossInput.value.trim();
+    if (bossText.length === 0) {
+      alert(translations[currentLang].alertBossEmpty);
+      return;
+    }
+    finalMessage.textContent = `${translations[currentLang].finalMessage} "${bossText}". ${
+      currentLang === 'fr' ? 'Prépare-toi à activer ton pouvoir "Prise de conscience" !' :
+      currentLang === 'en' ? 'Prepare to activate your "Awareness" power!' :
+      currentLang === 'es' ? '¡Prepárate para activar tu poder "Conciencia"!' :
+      currentLang === 'pt' ? 'Prepare-se para ativar seu poder "Consciência"!' :
+      currentLang === 'de' ? 'Bereite dich darauf vor, deine "Bewusstheit"-Kraft zu aktivieren!' : ''
+    }`;
+
+    finalAnimation.classList.remove('hidden');
+    btnSubmitBoss.disabled = true;
+    bossInput.disabled = true;
+  });
+
+  btnValidateQuests.addEventListener('click', () => {
+    let completed = questCheckboxes.filter(cb => cb.checked).length;
+    if (completed === 0) {
+      alert(currentLang === 'fr' ? 'Coche au moins une quête pour valider.' :
+            currentLang === 'en' ? 'Check at least one quest to validate.' :
+            currentLang === 'es' ? 'Marca al menos una misión para validar.' :
+            currentLang === 'pt' ? 'Marque pelo menos uma missão para validar.' :
+            currentLang === 'de' ? 'Markiere mindestens eine Quest zum Bestätigen.' : '');
+      return;
+    }
+    alert(currentLang === 'fr' ? `Bravo ! Tu as accompli ${completed} quête(s). Continue comme ça !` :
+          currentLang === 'en' ? `Great! You completed ${completed} quest(s). Keep it up!` :
+          currentLang === 'es' ? `¡Genial! Completaste ${completed} misión(es). ¡Sigue así!` :
+          currentLang === 'pt' ? `Ótimo! Você completou ${completed} missão(ões). Continue assim!` :
+          currentLang === 'de' ? `Super! Du hast ${completed} Quest(s) abgeschlossen. Mach weiter so!` : '');
+    btnValidateQuests.disabled = true;
+    questCheckboxes.forEach(cb => cb.disabled = true);
+  });
+
+  startBtn.addEventListener('click', () => {
+    loadLanguage(langSelect.value);
+    showScreen(quizScreen);
+  });
+
+  langSelect.addEventListener('change', () => {
+    loadLanguage(langSelect.value);
+  });
+
+  showScreen(langScreen);
+</script>
+</body>
+</html>
